@@ -33,7 +33,9 @@ library = [
     os.path.join(dependencies_dir, "lib"),
     os.path.join(dependencies_dir, "bin"),
 ]
-
+include_path = [
+    np.get_include(),
+]
 ext_modules: List[Extension] = cythonize(
     module_list="pyembree/*.pyx",
     language_level=3,
@@ -42,12 +44,13 @@ ext_modules: List[Extension] = cythonize(
 
 for ext in ext_modules:
     ext.include_dirs = include
+#    ext.define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]
     ext.library_dirs = library
     if os.name == "nt":
         ext.libraries = [
-            "embree",
-            "tbb",
-            "tbbmalloc",
+            "pyembree/embree2/include/embree",
+            "pyembree/embree2/lib/tbb",
+            "pyembree/embree2/lib/tbbmalloc",
         ]
     else:
         # It is recommended to build against tbb and tbbmalloc, which may improve
@@ -57,7 +60,7 @@ for ext in ext_modules:
         # See also `ci/embree_linux.bash`
         #
         ext.libraries = [
-            "embree",
+            "pyembree/embree2/include/embree",
             # "tbb",  # Uncomment to build against tbb
             # "tbbmalloc"  # Uncomment to build against tbb
         ]
@@ -91,9 +94,11 @@ setup_kwargs = {
     "cmdclass": {"build_ext": build_ext},
     "zip_safe": False,
     "packages": find_packages(),
+    "include_package_data":True,
+    "package_data":{"pyembree": ["*.cpp", "*.dll"]},
     "packages": packages,
     "install_requires": install_requires,
-    "python_requires": ">=3.8,<3.9",
+    "python_requires": ">=3.8,<3.11",
     "classifiers": [
         "License :: OSI Approved :: BSD License",
         "Operating System :: POSIX :: Linux",
@@ -101,6 +106,8 @@ setup_kwargs = {
         "Operating System :: Microsoft :: Windows :: Windows 10",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
 }
 
